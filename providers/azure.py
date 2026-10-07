@@ -1,0 +1,127 @@
+import logging
+from typing import List, Dict, Any, Optional
+from datetime import datetime, timedelta
+
+from providers.base import CloudProvider
+
+logger = logging.getLogger(__name__)
+
+class AzureProvider(CloudProvider):
+
+    def __init__(self, credentials: Dict[str, str]):
+        super().__init__("azure", credentials)
+        self.client_id = credentials.get("azure_client_id", "")
+        self.client_secret = credentials.get("azure_client_secret", "")
+        self.tenant_id = credentials.get("azure_tenant_id", "")
+        self.subscription_id = credentials.get("azure_subscription_id", "")
+
+    def _compute(self):
+        from azure.identity import ClientSecretCredential
+        from azure.mgmt.compute import ComputeManagementClient
+        cred = ClientSecretCredential(self.tenant_id, self.client_id, self.client_secret)
+        return ComputeManagementClient(cred, self.subscription_id)
+
+    def _storage(self):
+        from azure.identity import ClientSecretCredential
+        from azure.mgmt.storage import StorageManagementClient
+        cred = ClientSecretCredential(self.tenant_id, self.client_id, self.client_secret)
+        return StorageManagementClient(cred, self.subscription_id)
+
+    def _monitor(self):
+        from azure.identity import ClientSecretCredential
+        from azure.mgmt.monitor import MonitorManagementClient
+        cred = ClientSecretCredential(self.tenant_id, self.client_id, self.client_secret)
+        return MonitorManagementClient(cred, self.subscription_id)
+
+    def list_resources(self, resource_type: Optional[str] = None) -> List[Dict[str, Any]]:
+        resources = []
+        try:
+            compute = self._compute()
+            for vm in compute.virtual_machines.list_all():
+                resources.append({
+                    "id": vm.name,
+                    "provider": "azure",
+                    "resource_type": "vm",
+                    "name": vm.name,
+                    "region": vm.location,
+                    "status": vm.provisioning_state or "unknown",
+                    "created_at": vm.tags.get("created_at", datetime.utcnow()) if vm.tags else datetime.utcnow(),
+                    "monthly_cost": 0.0,
+                    "utilization": {},
+                })
+            storage = self._storage()
+            for account in storage.storage_accounts.list():
+                resources.append({
+                    "id": account.name,
+                    "provider": "azure",
+                    "resource_type": "storage_account",
+                    "name": account.name,
+                    "region": account.location,
+                    "status": account.provisioning_state or "active",
+                    "created_at": datetime.utcnow(),
+                    "monthly_cost": 0.0,
+                    "utilization": {},
+                })
+        except Exception as e:
+            logger.error("Azure resource listing failed: %s", e)
+        if resource_type:
+            resources = [r for r in resources if r["resource_type"] == resource_type]
+        return resources
+
+    def get_cost_data(self, days: int = 30) -> List[Dict[str, Any]]:
+        costs = []
+        try:
+            from azure.identity import ClientSecretCredential
+            from azure.mgmt.consumption import ConsumptionManagementClient
+            cred = ClientSecretCredential(self.tenant_id, self.client_id, self.client_secret)
+            client = ConsumptionManagementClient(cred, self.subscription_id)
+            end = datetime.utcnow()
+            start = end - timedelta(days=days)
+            for charge in client.usage_details.list(start.strftime("%Y-%m-%d"), end.strftime("%Y-%m-%d")):
+                costs.append({
+                    "date": charge.date,
+                    "provider": "azure",
+                    "service": charge.service_name or "unknown",
+                    "cost": charge.pre_tax_cost or 0.0,
+                })
+        except Exception as e:
+            logger.error("Azure cost data failed: %s", e)
+        return costs
+
+    def get_security_config(self) -> Dict[str, Any]:
+        config = {"provider": "azure", "checks": []}
+        try:
+            from azure.identity import ClientSecretCredential
+            from azure.mgmt.authorization import AuthorizationManagementClient
+            cred = ClientSecretCredential(self.tenant_id, self.client_id, self.client_secret)
+            client = AuthorizationManagementClient(cred, self.subscription_id)
+            for policy in client.policy_assignments.list_for_subscription():
+                config["checks"].append({"type": "rbac_policy", "name": policy.display_name, "status": "review"})
+        except Exception as e:
+            logger.error("Azure security config failed: %s", e)
+        return config
+
+    def get_utilization(self) -> Dict[str, Any]:
+        util = {"provider": "azure", "cpu": 0.0, "memory": 0.0, "storage": 0.0, "resources": 0}
+        try:
+            monitor = self._monitor()
+            now = datetime.utcnow()
+            start = now - timedelta(hours=1)
+            metrics = monitor.metrics.list(
+                resource_uri=f"/subscriptions/{self.subscription_id}/providers/Microsoft.Compute/virtualMachines",
+                timespan=start.strftime("%Y-%m-%dT%H:%M:%SZ") + "/" + now.strftime("%Y-%m-%dT%H:%M:%SZ"),
+                metric_names=["Percentage CPU"],
+            )
+            total, count = 0.0, 0
+            for vm_metrics in metrics.value:
+                for series in vm_metrics.timeseries:
+                    for point in series.data:
+                        if point.time_granularity and point.average is not None:
+                            total += point.average
+                            count += 1
+            if count:
+                util["cpu"] = total / count
+            util["resources"] = count
+        except Exception as e:
+            logger.error("Azure utilization failed: %s", e)
+        return util
