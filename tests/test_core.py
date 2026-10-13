@@ -1,13 +1,16 @@
 import pytest
-from cost.analysis import cost_engine
-from cost.optimization import optimization_engine
-from cost.rightsizing import rightsizing_engine
-from security.audit import audit_engine
-from security.compliance import compliance_engine
-from security.posture import posture_engine
-from compute.scaling import scaling_engine
-from compute.orchestration import orchestration_engine
-from providers.registry import provider_registry
+import sys, os
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'backend'))
+
+from app.cost.analysis import cost_engine
+from app.cost.optimization import optimization_engine
+from app.cost.rightsizing import rightsizing_engine
+from app.security.audit import audit_engine
+from app.security.compliance import compliance_engine
+from app.security.posture import posture_engine
+from app.compute.scaling import scaling_engine
+from app.compute.orchestration import orchestration_engine
+from app.providers.registry import provider_registry
 
 def test_cost_summary():
     summary = cost_engine.get_summary()
