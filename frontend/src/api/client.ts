@@ -33,4 +33,5 @@ export const api = {
   tenants: () => request<any[]>('/api/tenants'),
   createTenant: (t: any) => request<any>('/api/tenants', { method: 'POST', body: JSON.stringify(t) }),
   tenant: (id: string) => request<any>(`/api/tenants/${id}`),
+  tenantConnections: (id: string) => request<any[]>(`/api/tenants/${id}/connections`),
 }

@@ -1,0 +1,69 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ai-cloud-manager"
+version = "1.0.0"
+description = "Enterprise multi-cloud AI management platform with cost optimization, security scoring, and AI recommendations."
+readme = "README.md"
+license = {text = "MIT"}
+authors = [{name = "Alan Vo", email = "alanvo@gmail.com"}]
+keywords = ["cloud", "cost-optimization", "security", "multi-cloud", "ai", "aws", "gcp", "azure"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: System Administrators",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: System :: Systems Administration",
+    "Topic :: Security",
+]
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.104.0",
+    "uvicorn>=0.24.0",
+    "pydantic>=2.5.0",
+    "python-jose[cryptography]>=3.3.0",
+    "python3-saml>=1.15.0",
+    "python-multipart>=0.0.6",
+    "requests>=2.31.0",
+    "python-dotenv>=1.0.0",
+    "httpx>=0.25.0",
+    "boto3>=1.28.0",
+    "aiofiles>=23.2.1",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4.0",
+    "pytest-asyncio>=0.21.0",
+    "httpx>=0.25.0",
+]
+gcp = ["google-cloud-compute>=1.14.0", "google-cloud-storage>=2.10.0", "google-cloud-monitoring>=2.14.0", "google-cloud-billing-budgets>=1.1.0"]
+azure = ["azure-identity>=1.13.0", "azure-mgmt-compute>=27.0.0", "azure-mgmt-storage>=21.0.0", "azure-mgmt-monitor>=4.0.0", "azure-mgmt-consumption>=6.0.0"]
+
+[project.urls]
+Homepage = "https://github.com/ALANDVO/ai-cloud-manager-alan-vo"
+Repository = "https://github.com/ALANDVO/ai-cloud-manager-alan-vo"
+Issues = "https://github.com/ALANDVO/ai-cloud-manager-alan-vo/issues"
+
+[tool.setuptools.packages.find]
+where = ["backend"]
+include = ["app*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["backend"]
+addopts = "-v --strict-markers"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true

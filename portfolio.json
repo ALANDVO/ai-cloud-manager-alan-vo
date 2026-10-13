@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "name": "ai-cloud-manager-alan-vo",
+  "owner": "ALANDVO",
+  "email": "alanvo@gmail.com",
+  "domain": "multi-cloud AI management with cost optimization, security posture, and resource right-sizing",
+  "workflows": [
+    "Cost optimization across AWS, GCP, and Azure with AI-powered recommendations",
+    "Security posture assessment and compliance auditing (SOC2, ISO27001, HIPAA)",
+    "Resource right-sizing and predictive auto-scaling for compute workloads"
+  ],
+  "auth": "oidc-keycloak-saml-broker",
+  "llm_providers": [
+    "openai-compatible",
+    "anthropic",
+    "gemini",
+    "ollama"
+  ],
+  "summary": "Work in progress: ai-cloud-manager-alan-vo",
+  "status": "work-in-progress"
+}
