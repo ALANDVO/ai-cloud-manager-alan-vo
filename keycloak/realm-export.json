@@ -1,0 +1,123 @@
+{
+  "realm": "ai-cloud-manager",
+  "enabled": true,
+  "displayName": "AI Cloud Manager",
+  "registrationAllowed": false,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "resetPasswordAllowed": true,
+  "editUsernameAllowed": false,
+  "bruteForceProtected": true,
+  "roles": {
+    "realm": [
+      { "name": "admin", "description": "Full administrative access" },
+      { "name": "operator", "description": "Read/write access to cloud resources" },
+      { "name": "analyst", "description": "Read-only access to dashboards and reports" }
+    ],
+    "client": {}
+  },
+  "clients": [
+    {
+      "clientId": "ai-cloud-manager-frontend",
+      "name": "AI Cloud Manager Frontend",
+      "description": "React SPA for AI Cloud Manager",
+      "rootUrl": "http://localhost:3000",
+      "baseUrl": "/",
+      "surrogateAuthRequired": false,
+      "enabled": true,
+      "alwaysDisplayInConsole": false,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "change-me-in-production",
+      "redirectUris": [ "http://localhost:3000/*", "http://localhost:8000/*" ],
+      "webOrigins": [ "http://localhost:3000", "http://localhost:8000" ],
+      "notBefore": 0,
+      "bearerOnly": false,
+      "consentRequired": false,
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "publicClient": true,
+      "frontchannelLogout": false,
+      "protocol": "openid-connect",
+      "attributes": {
+        "pkce.code.challenge.method": "S256",
+        "access.token.lifespan": "3600",
+        "use.refresh.tokens": "true"
+      },
+      "authenticationFlowBindingOverrides": {},
+      "fullScopeAllowed": true,
+      "nodeReRegistrationTimeout": -1,
+      "protocolMappers": [
+        {
+          "name": "email",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-property-mapper",
+          "config": { "user.attribute": "email", "claim.name": "email", "jsonType.label": "String", "access.token.claim": "true", "id.token.claim": "true" }
+        },
+        {
+          "name": "name",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-property-mapper",
+          "config": { "user.attribute": "firstName", "claim.name": "name", "jsonType.label": "String", "access.token.claim": "true", "id.token.claim": "true" }
+        },
+        {
+          "name": "role",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-realm-role-mapper",
+          "config": { "multivalued": "false", "user.attribute": "role", "claim.name": "role", "jsonType.label": "String", "access.token.claim": "true", "id.token.claim": "true" }
+        }
+      ],
+      "defaultClientScopes": [ "web-origins", "role_list", "profile", "roles", "email" ],
+      "optionalClientScopes": [ "address", "phone", "offline_access", "microprofile-jwt" ]
+    }
+  ],
+  "defaultRoles": [ "operator" ],
+  "requiredCredentials": [ "password" ],
+  "otpPolicyType": "totp",
+  "otpSupportedApplications": [ "FreeOTP", "Google Authenticator" ],
+  "browserSecurityHeaders": {
+    "contentSecurityPolicyReportOnly": "",
+    "xContentTypeOptions": "nosniff",
+    "xRobotsTag": "none",
+    "xFrameOptions": "SAMEORIGIN",
+    "contentSecurityPolicy": "frame-src 'self'; frame-ancestors 'self'; object-src 'none';"
+  },
+  "smtpServer": {},
+  "identityProviders": [
+    {
+      "alias": "saml",
+      "displayName": "SAML IdP",
+      "providerId": "saml",
+      "enabled": true,
+      "trustEmail": true,
+      "storeToken": false,
+      "addReadTokenRoleOnCreate": true,
+      "linkOnly": false,
+      "firstBrokerLoginFlowAlias": "first broker login",
+      "config": {
+        "singleSignOnServiceUrl": "",
+        "singleLogoutServiceUrl": "",
+        "nameIDPolicyFormat": "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress",
+        "signatureAlgorithm": "RSA_SHA256",
+        "onLoad": "external",
+        "validateSignature": "true",
+        "useJwksUrl": "true",
+        "backchannelSupported": "false",
+        "principalType": "ATTRIBUTE",
+        "principalAttribute": "email",
+        "userIdAttribute": "email",
+        "xmlSigKeyInfoKeyNameTransformer": "KEY_ID",
+        "skipEndpointValidation": "true",
+        "forceAuthn": "false",
+        "postBindingAuthnRequest": "true",
+        "postBindingResponse": "true",
+        "artifactBindingUrl": "",
+        "artifactResolutionUrl": "",
+        "artifactBindingResponse": "false",
+        "artifactResolutionBindingResponse": "false",
+        "metadataDescriptorUrl": ""
+      }
+    }
+  ]
+}

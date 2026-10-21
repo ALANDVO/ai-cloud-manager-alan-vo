@@ -27,6 +27,7 @@ class OptimizationEngine:
 
     async def generate(self) -> List[Dict[str, Any]]:
         from app.cost.analysis import cost_engine
+        summary = cost_engine.get_summary()
         breakdown = cost_engine.get_breakdown()
         anomalies = cost_engine.get_anomalies()[:5]
         context = json.dumps({

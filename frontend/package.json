@@ -2,8 +2,12 @@
   "name": "ai-cloud-manager",
   "version": "1.0.0",
   "private": true,
-  "description": "AI Cloud Manager — Enterprise Multi-Cloud Dashboard",
-  "author": "Alan Vo <alanvo@gmail.com>",
+  "description": "AI Cloud Manager \u2014 Enterprise Multi-Cloud Dashboard",
+  "author": {
+    "name": "Alan Vo",
+    "email": "alanvo@gmail.com",
+    "url": "https://github.com/ALANDVO"
+  },
   "type": "module",
   "scripts": {
     "dev": "vite",
