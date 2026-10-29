@@ -1,6 +1,6 @@
 import logging
 from typing import List, Dict, Any, Optional
-from datetime import datetime
+from datetime import datetime, timezone
 
 from app.providers.aws import AWSProvider
 from app.providers.gcp import GCPProvider
@@ -8,6 +8,7 @@ from app.providers.azure import AzureProvider
 from app.config import settings
 
 logger = logging.getLogger(__name__)
+
 
 class ProviderRegistry:
 
@@ -52,12 +53,9 @@ class ProviderRegistry:
                           resource_type: Optional[str] = None,
                           limit: int = 200) -> List[Dict[str, Any]]:
         resources = []
-        names = [provider] if provider else list(self.providers.keys())
-        for name in names:
-            p = self.providers.get(name)
-            if p:
-                resources.extend(p.list_resources(resource_type))
-        resources.sort(key=lambda r: r.get("monthly_cost", 0), reverse=True)
+        providers = [self.providers[p] for p in (provider,) if p in self.providers] if provider else self.providers.values()
+        for p in providers:
+            resources.extend(p.list_resources(resource_type))
         return resources[:limit]
 
     def get_all_costs(self, days: int = 30) -> List[Dict[str, Any]]:
@@ -74,27 +72,22 @@ class ProviderRegistry:
 
     def get_utilization(self) -> Dict[str, Any]:
         total_resources = 0
-        by_provider = {}
-        by_type = {}
-        total_cpu, total_mem, total_storage = 0.0, 0.0, 0.0
-        underutilized, overutilized = 0, 0
-        for name, p in self.providers.items():
-            util = p.get_utilization()
-            count = util.get("resources", 0)
-            total_resources += count
-            by_provider[name] = count
-            total_cpu += util.get("cpu", 0)
-            total_mem += util.get("memory", 0)
-            total_storage += util.get("storage", 0)
+        total_cpu = 0.0
+        total_memory = 0.0
+        total_storage = 0.0
+        provider_count = 0
+        for p in self.providers.values():
+            u = p.get_utilization()
+            total_cpu += u.get("cpu", 0)
+            total_memory += u.get("memory", 0)
+            total_storage += u.get("storage", 0)
+            total_resources += u.get("resources", 0)
+            provider_count += 1
         return {
+            "avg_cpu": round(total_cpu / max(provider_count, 1), 2),
+            "avg_memory": round(total_memory / max(provider_count, 1), 2),
+            "avg_storage": round(total_storage / max(provider_count, 1), 2),
             "total_resources": total_resources,
-            "by_provider": by_provider,
-            "by_type": by_type,
-            "avg_cpu": total_cpu / max(len(self.providers), 1),
-            "avg_memory": total_mem / max(len(self.providers), 1),
-            "avg_storage": total_storage / max(len(self.providers), 1),
-            "underutilized": underutilized,
-            "overutilized": overutilized,
         }
 
     def get_tenants(self) -> List[Dict[str, Any]]:
@@ -110,7 +103,7 @@ class ProviderRegistry:
             "providers": tenant.providers,
             "cost_budget_monthly": tenant.cost_budget_monthly,
             "status": "active",
-            "created_at": datetime.utcnow(),
+            "created_at": datetime.now(timezone.utc),
         }
         self._tenants.append(record)
         return record
@@ -125,25 +118,19 @@ class ProviderRegistry:
         t = self.get_tenant(tenant_id)
         if not t:
             return None
-        if update.name is not None:
-            t["name"] = update.name
-        if update.providers is not None:
-            t["providers"] = update.providers
-        if update.cost_budget_monthly is not None:
-            t["cost_budget_monthly"] = update.cost_budget_monthly
-        if update.status is not None:
-            t["status"] = update.status
+        for k, v in update.model_dump(exclude_unset=True).items():
+            t[k] = v
         return t
 
     _tenants = [
         {
             "id": "tenant-default",
-            "name": "Default",
+            "name": "Default Tenant",
             "email": "admin@example.com",
             "providers": ["aws", "gcp", "azure"],
-            "cost_budget_monthly": 10000.0,
+            "cost_budget_monthly": 5000.0,
             "status": "active",
-            "created_at": datetime(2026, 1, 15, 10, 0, 0),
+            "created_at": datetime.now(timezone.utc),
         }
     ]
 

@@ -1,6 +1,7 @@
+
 import logging, uuid
 from typing import List, Dict, Any, Optional
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from collections import defaultdict
 
 logger = logging.getLogger(__name__)
@@ -39,7 +40,7 @@ class CostEngine:
         trends = self.trends
         if provider:
             trends = [t for t in trends if t.get("provider") == provider]
-        cutoff = (datetime.utcnow() - timedelta(days=days)).strftime("%Y-%m-%d")
+        cutoff = (datetime.now(timezone.utc) - timedelta(days=days)).strftime("%Y-%m-%d")
         trends = [t for t in trends if t.get("date", "") >= cutoff]
         trends.sort(key=lambda t: t.get("date", ""))
         return trends
@@ -92,7 +93,7 @@ class CostEngine:
                         "actual_cost": round(c, 2),
                         "deviation_percent": round(deviation * 100, 1),
                         "severity": "high" if deviation > 3 else "medium",
-                        "detected_at": datetime.utcnow(),
+                        "detected_at": datetime.now(timezone.utc),
                     })
 
 cost_engine = CostEngine()

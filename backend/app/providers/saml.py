@@ -1,8 +1,9 @@
 import logging, base64
 from typing import Optional, Dict
-from datetime import datetime
+from datetime import datetime, timezone
 
 logger = logging.getLogger(__name__)
+
 
 class SAMLHandler:
 
@@ -16,7 +17,7 @@ class SAMLHandler:
         import uuid
         return {
             "id": f"req-{uuid.uuid4().hex[:12]}",
-            "issue_instant": datetime.utcnow().isoformat() + "Z",
+            "issue_instant": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
             "issuer": self.sp_entity,
             "destination": self.idp_entity,
             "protocol": "urn:oasis:names:tc:saml:2.0:protocol",
@@ -53,18 +54,12 @@ class SAMLHandler:
 
     def get_metadata(self) -> str:
         template = (
-            '<?xml version="1.0" encoding="UTF-8"?>
-'
-            '<EntityDescriptor xmlns="urn:oasis:names:tc:saml:2.0:metadata" entityID="{sp}">
-'
-            '  <SPSSODescriptor AuthnRequestsSigned="false" WantAssertionsSigned="true">
-'
-            '    <NameIDFormat>urn:oasis:names:tc:saml:2.0:nameid-format:emailAddress</NameIDFormat>
-'
-            '    <AssertionConsumerService Binding="urn:oasis:names:tc:saml:2.0:bindings:HTTP-POST" Location="{acs}" index="0"/>
-'
-            '  </SPSSODescriptor>
-'
+            '<?xml version="1.0" encoding="UTF-8"?>\n'
+            '<EntityDescriptor xmlns="urn:oasis:names:tc:saml:2.0:metadata" entityID="{sp}">\n'
+            '  <SPSSODescriptor AuthnRequestsSigned="false" WantAssertionsSigned="true">\n'
+            '    <NameIDFormat>urn:oasis:names:tc:saml:2.0:nameid-format:emailAddress</NameIDFormat>\n'
+            '    <AssertionConsumerService Binding="urn:oasis:names:tc:saml:2.0:bindings:HTTP-POST" Location="{acs}" index="0"/>\n'
+            '  </SPSSODescriptor>\n'
             '</EntityDescriptor>'
         )
         return template.format(sp=self.sp_entity, acs=self.acs_url)

@@ -1,10 +1,11 @@
 import logging, json
 from typing import List, Dict, Any
-from datetime import datetime
+from datetime import datetime, timezone
 import httpx
 from app.config import settings
 
 logger = logging.getLogger(__name__)
+
 
 class PostureEngine:
 
@@ -44,7 +45,7 @@ class PostureEngine:
             raw = await self._chat(system, f"Security posture data:\n{context}")
             clean = raw.strip().removeprefix("```json").removeprefix("```").removesuffix("```").strip()
             self.report = json.loads(clean)
-            self.report["assessed_at"] = datetime.utcnow().isoformat()
+            self.report["assessed_at"] = datetime.now(timezone.utc).isoformat()
             return self.report
         except Exception as e:
             logger.warning("LLM posture assessment failed: %s", e)
@@ -69,7 +70,7 @@ class PostureEngine:
                 "Deploy a CSPM tool for continuous compliance monitoring",
                 "Conduct quarterly penetration testing across all clouds",
             ],
-            "assessed_at": datetime.utcnow().isoformat(),
+            "assessed_at": datetime.now(timezone.utc).isoformat(),
         }
 
     def get_report(self) -> Dict[str, Any]:
