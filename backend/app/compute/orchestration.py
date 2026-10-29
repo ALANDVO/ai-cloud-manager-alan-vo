@@ -1,8 +1,9 @@
 import logging, uuid
 from typing import List, Dict, Any
-from datetime import datetime
+from datetime import datetime, timezone
 
 logger = logging.getLogger(__name__)
+
 
 class OrchestrationEngine:
 
@@ -20,7 +21,7 @@ class OrchestrationEngine:
                 "resource_type": "ec2_instance",
                 "replicas": 6,
                 "status": "running",
-                "deployed_at": datetime(2026, 9, 15, 10, 30, 0),
+                "deployed_at": datetime(2026, 9, 15, 10, 30, 0, tzinfo=timezone.utc),
             },
             {
                 "id": "wl-002",
@@ -30,7 +31,7 @@ class OrchestrationEngine:
                 "resource_type": "gce_instance",
                 "replicas": 4,
                 "status": "running",
-                "deployed_at": datetime(2026, 9, 20, 14, 0, 0),
+                "deployed_at": datetime(2026, 9, 20, 14, 0, 0, tzinfo=timezone.utc),
             },
             {
                 "id": "wl-003",
@@ -40,7 +41,7 @@ class OrchestrationEngine:
                 "resource_type": "vm",
                 "replicas": 8,
                 "status": "running",
-                "deployed_at": datetime(2026, 10, 1, 8, 0, 0),
+                "deployed_at": datetime(2026, 10, 1, 8, 0, 0, tzinfo=timezone.utc),
             },
         ]
 
@@ -50,7 +51,7 @@ class OrchestrationEngine:
     def deploy(self, workload: Dict[str, Any]) -> Dict[str, Any]:
         workload["id"] = workload.get("id") or f"wl-{uuid.uuid4().hex[:6]}"
         workload["status"] = workload.get("status", "deploying")
-        workload["deployed_at"] = workload.get("deployed_at") or datetime.utcnow()
+        workload["deployed_at"] = workload.get("deployed_at") or datetime.now(timezone.utc)
         self.workloads.append(workload)
         logger.info("Deployed workload %s: %s on %s", workload["id"], workload["name"], workload["provider"])
         return workload

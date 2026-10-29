@@ -1,10 +1,11 @@
 import logging, json
 from typing import List, Dict, Any, Optional
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from app.providers.base import CloudProvider
 
 logger = logging.getLogger(__name__)
+
 
 class AWSProvider(CloudProvider):
 
@@ -38,7 +39,7 @@ class AWSProvider(CloudProvider):
                         "name": self._tag(instance, "Name"),
                         "region": instance.get("Placement", {}).get("Region", self.region),
                         "status": instance.get("State", {}).get("Name", "unknown"),
-                        "created_at": instance.get("LaunchTime", datetime.utcnow()),
+                        "created_at": instance.get("LaunchTime", datetime.now(timezone.utc)),
                         "monthly_cost": 0.0,
                         "utilization": {},
                     })
@@ -51,7 +52,7 @@ class AWSProvider(CloudProvider):
                     "name": bucket["Name"],
                     "region": self.region,
                     "status": "active",
-                    "created_at": bucket.get("CreationDate", datetime.utcnow()),
+                    "created_at": bucket.get("CreationDate", datetime.now(timezone.utc)),
                     "monthly_cost": 0.0,
                     "utilization": {},
                 })
@@ -64,7 +65,7 @@ class AWSProvider(CloudProvider):
                     "name": db["DBInstanceIdentifier"],
                     "region": db.get("DBInstanceArn", self.region).split(":")[3],
                     "status": db.get("DBInstanceStatus", "unknown"),
-                    "created_at": db.get("InstanceCreateTime", datetime.utcnow()),
+                    "created_at": db.get("InstanceCreateTime", datetime.now(timezone.utc)),
                     "monthly_cost": 0.0,
                     "utilization": {},
                 })
@@ -78,7 +79,7 @@ class AWSProvider(CloudProvider):
         costs = []
         try:
             ce = self._client("ce")
-            end = datetime.utcnow()
+            end = datetime.now(timezone.utc)
             start = end - timedelta(days=days)
             resp = ce.get_cost_and_usage(
                 TimePeriod={"Start": start.strftime("%Y-%m-%d"), "End": end.strftime("%Y-%m-%d")},
@@ -121,7 +122,7 @@ class AWSProvider(CloudProvider):
         util = {"provider": "aws", "cpu": 0.0, "memory": 0.0, "storage": 0.0, "resources": 0}
         try:
             cw = self._client("cloudwatch")
-            now = datetime.utcnow()
+            now = datetime.now(timezone.utc)
             start = now - timedelta(hours=1)
             resp = cw.get_metric_statistics(
                 Namespace="AWS/EC2", MetricName="CPUUtilization",
@@ -141,6 +142,7 @@ class AWSProvider(CloudProvider):
             if tag.get("Key") == key:
                 return tag.get("Value", "")
         return instance.get("InstanceId", "unknown")
+
     def _mock_resources(self, resource_type: Optional[str] = None) -> List[Dict[str, Any]]:
         mock = [
             {
@@ -150,7 +152,7 @@ class AWSProvider(CloudProvider):
                 "name": "prod-web-01",
                 "region": "us-east-1",
                 "status": "running",
-                "created_at": datetime.utcnow(),
+                "created_at": datetime.now(timezone.utc),
                 "monthly_cost": 73.00,
                 "utilization": {"cpu": 45.2, "memory": 62.1},
             },
@@ -161,7 +163,7 @@ class AWSProvider(CloudProvider):
                 "name": "prod-api-02",
                 "region": "us-east-1",
                 "status": "running",
-                "created_at": datetime.utcnow(),
+                "created_at": datetime.now(timezone.utc),
                 "monthly_cost": 146.00,
                 "utilization": {"cpu": 78.5, "memory": 82.3},
             },
@@ -172,7 +174,7 @@ class AWSProvider(CloudProvider):
                 "name": "data-lake-prod",
                 "region": "us-east-1",
                 "status": "active",
-                "created_at": datetime.utcnow(),
+                "created_at": datetime.now(timezone.utc),
                 "monthly_cost": 234.50,
                 "utilization": {"storage": 67.0},
             },
@@ -183,7 +185,7 @@ class AWSProvider(CloudProvider):
                 "name": "prod-db-01",
                 "region": "us-east-1",
                 "status": "available",
-                "created_at": datetime.utcnow(),
+                "created_at": datetime.now(timezone.utc),
                 "monthly_cost": 445.00,
                 "utilization": {"cpu": 34.7, "memory": 71.2, "storage": 45.0},
             },

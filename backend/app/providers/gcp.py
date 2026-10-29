@@ -1,10 +1,11 @@
 import logging
 from typing import List, Dict, Any, Optional
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from app.providers.base import CloudProvider
 
 logger = logging.getLogger(__name__)
+
 
 class GCPProvider(CloudProvider):
 
@@ -41,7 +42,7 @@ class GCPProvider(CloudProvider):
                     "name": inst.name,
                     "region": inst.zone.split("/")[-1] if inst.zone else "unknown",
                     "status": inst.status or "unknown",
-                    "created_at": datetime.utcnow(),
+                    "created_at": datetime.now(timezone.utc),
                     "monthly_cost": 0.0,
                     "utilization": {},
                 })
@@ -68,7 +69,7 @@ class GCPProvider(CloudProvider):
         try:
             from google.cloud import billing_budgets_v1
             client = billing_budgets_v1.BillingBudgetServiceClient()
-            end = datetime.utcnow()
+            end = datetime.now(timezone.utc)
             start = end - timedelta(days=days)
             for budget in client.list_billing_budgets(parent=f"billingAccounts/{self.project_id}"):
                 for info in budget.billing_plan.budgets:
@@ -98,7 +99,7 @@ class GCPProvider(CloudProvider):
         try:
             from google.cloud import monitoring_v3
             client = monitoring_v3.MetricServiceClient()
-            now = datetime.utcnow()
+            now = datetime.now(timezone.utc)
             start = now - timedelta(hours=1)
             resp = client.list_time_series(
                 name=f"projects/{self.project_id}/timeSeries",
@@ -116,6 +117,7 @@ class GCPProvider(CloudProvider):
         except Exception as e:
             logger.error("GCP utilization failed: %s", e)
         return util
+
     def _mock_resources(self, resource_type: Optional[str] = None) -> List[Dict[str, Any]]:
         mock = [
             {
@@ -125,7 +127,7 @@ class GCPProvider(CloudProvider):
                 "name": "prod-api-01",
                 "region": "us-central1-a",
                 "status": "RUNNING",
-                "created_at": datetime.utcnow(),
+                "created_at": datetime.now(timezone.utc),
                 "monthly_cost": 54.00,
                 "utilization": {"cpu": 38.5, "memory": 55.2},
             },
@@ -136,7 +138,7 @@ class GCPProvider(CloudProvider):
                 "name": "prod-api-02",
                 "region": "us-central1-a",
                 "status": "RUNNING",
-                "created_at": datetime.utcnow(),
+                "created_at": datetime.now(timezone.utc),
                 "monthly_cost": 54.00,
                 "utilization": {"cpu": 42.1, "memory": 48.7},
             },
@@ -147,7 +149,7 @@ class GCPProvider(CloudProvider):
                 "name": "data-lake",
                 "region": "US",
                 "status": "active",
-                "created_at": datetime.utcnow(),
+                "created_at": datetime.now(timezone.utc),
                 "monthly_cost": 89.30,
                 "utilization": {"storage": 72.0},
             },
@@ -158,7 +160,7 @@ class GCPProvider(CloudProvider):
                 "name": "analytics",
                 "region": "US",
                 "status": "active",
-                "created_at": datetime.utcnow(),
+                "created_at": datetime.now(timezone.utc),
                 "monthly_cost": 234.00,
                 "utilization": {},
             },

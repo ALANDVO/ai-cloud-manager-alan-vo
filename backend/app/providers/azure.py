@@ -1,10 +1,11 @@
 import logging
 from typing import List, Dict, Any, Optional
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from app.providers.base import CloudProvider
 
 logger = logging.getLogger(__name__)
+
 
 class AzureProvider(CloudProvider):
 
@@ -47,7 +48,7 @@ class AzureProvider(CloudProvider):
                     "name": vm.name,
                     "region": vm.location,
                     "status": vm.provisioning_state or "unknown",
-                    "created_at": vm.tags.get("created_at", datetime.utcnow()) if vm.tags else datetime.utcnow(),
+                    "created_at": vm.tags.get("created_at", datetime.now(timezone.utc)) if vm.tags else datetime.now(timezone.utc),
                     "monthly_cost": 0.0,
                     "utilization": {},
                 })
@@ -60,7 +61,7 @@ class AzureProvider(CloudProvider):
                     "name": account.name,
                     "region": account.location,
                     "status": account.provisioning_state or "active",
-                    "created_at": datetime.utcnow(),
+                    "created_at": datetime.now(timezone.utc),
                     "monthly_cost": 0.0,
                     "utilization": {},
                 })
@@ -77,7 +78,7 @@ class AzureProvider(CloudProvider):
             from azure.mgmt.consumption import ConsumptionManagementClient
             cred = ClientSecretCredential(self.tenant_id, self.client_id, self.client_secret)
             client = ConsumptionManagementClient(cred, self.subscription_id)
-            end = datetime.utcnow()
+            end = datetime.now(timezone.utc)
             start = end - timedelta(days=days)
             for charge in client.usage_details.list(start.strftime("%Y-%m-%d"), end.strftime("%Y-%m-%d")):
                 costs.append({
@@ -96,9 +97,9 @@ class AzureProvider(CloudProvider):
             from azure.identity import ClientSecretCredential
             from azure.mgmt.authorization import AuthorizationManagementClient
             cred = ClientSecretCredential(self.tenant_id, self.client_id, self.client_secret)
-            client = AuthorizationManagementClient(cred, self.subscription_id)
-            for policy in client.policy_assignments.list_for_subscription():
-                config["checks"].append({"type": "rbac_policy", "name": policy.display_name, "status": "review"})
+            auth_client = AuthorizationManagementClient(cred, self.subscription_id)
+            for role_def in auth_client.role_definitions.list(scope=f"/subscriptions/{self.subscription_id}"):
+                config["checks"].append({"type": "role_definition", "name": role_def.role_name, "status": "review"})
         except Exception as e:
             logger.error("Azure security config failed: %s", e)
         return config
@@ -107,7 +108,7 @@ class AzureProvider(CloudProvider):
         util = {"provider": "azure", "cpu": 0.0, "memory": 0.0, "storage": 0.0, "resources": 0}
         try:
             monitor = self._monitor()
-            now = datetime.utcnow()
+            now = datetime.now(timezone.utc)
             start = now - timedelta(hours=1)
             metrics = monitor.metrics.list(
                 resource_uri=f"/subscriptions/{self.subscription_id}/providers/Microsoft.Compute/virtualMachines",
@@ -127,6 +128,7 @@ class AzureProvider(CloudProvider):
         except Exception as e:
             logger.error("Azure utilization failed: %s", e)
         return util
+
     def _mock_resources(self, resource_type: Optional[str] = None) -> List[Dict[str, Any]]:
         mock = [
             {
@@ -136,7 +138,7 @@ class AzureProvider(CloudProvider):
                 "name": "data-warehouse-01",
                 "region": "eastus",
                 "status": "Succeeded",
-                "created_at": datetime.utcnow(),
+                "created_at": datetime.now(timezone.utc),
                 "monthly_cost": 320.00,
                 "utilization": {"cpu": 65.4, "memory": 78.9},
             },
@@ -147,7 +149,7 @@ class AzureProvider(CloudProvider):
                 "name": "web-02",
                 "region": "eastus",
                 "status": "Succeeded",
-                "created_at": datetime.utcnow(),
+                "created_at": datetime.now(timezone.utc),
                 "monthly_cost": 120.00,
                 "utilization": {"cpu": 23.1, "memory": 34.5},
             },
@@ -158,7 +160,7 @@ class AzureProvider(CloudProvider):
                 "name": "stgprod001",
                 "region": "eastus",
                 "status": "Succeeded",
-                "created_at": datetime.utcnow(),
+                "created_at": datetime.now(timezone.utc),
                 "monthly_cost": 87.50,
                 "utilization": {"storage": 54.0},
             },
@@ -169,7 +171,7 @@ class AzureProvider(CloudProvider):
                 "name": "crm-db",
                 "region": "eastus",
                 "status": "Online",
-                "created_at": datetime.utcnow(),
+                "created_at": datetime.now(timezone.utc),
                 "monthly_cost": 245.00,
                 "utilization": {"cpu": 41.2, "memory": 67.8, "storage": 38.0},
             },
