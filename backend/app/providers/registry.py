@@ -76,18 +76,27 @@ class ProviderRegistry:
         total_memory = 0.0
         total_storage = 0.0
         provider_count = 0
+        by_provider = {}
         for p in self.providers.values():
             u = p.get_utilization()
+            provider_name = u.get("provider", "unknown")
             total_cpu += u.get("cpu", 0)
             total_memory += u.get("memory", 0)
             total_storage += u.get("storage", 0)
             total_resources += u.get("resources", 0)
             provider_count += 1
+            by_provider[provider_name] = {
+                "cpu": round(u.get("cpu", 0), 2),
+                "memory": round(u.get("memory", 0), 2),
+                "storage": round(u.get("storage", 0), 2),
+                "resources": u.get("resources", 0),
+            }
         return {
             "avg_cpu": round(total_cpu / max(provider_count, 1), 2),
             "avg_memory": round(total_memory / max(provider_count, 1), 2),
             "avg_storage": round(total_storage / max(provider_count, 1), 2),
             "total_resources": total_resources,
+            "by_provider": by_provider,
         }
 
     def get_tenants(self) -> List[Dict[str, Any]]:

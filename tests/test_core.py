@@ -118,4 +118,4 @@ def test_tenant_management():
     assert len(tenants) > 0
     t = provider_registry.get_tenant("tenant-default")
     assert t is not None
-    assert t["name"] == "Default"
+    assert t["name"] == "Default Tenant"
