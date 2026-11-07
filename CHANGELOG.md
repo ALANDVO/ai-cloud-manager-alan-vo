@@ -56,3 +56,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - JWT tokens with configurable expiry
 - Rate limiting on API endpoints
 - Input validation via Pydantic models
+
+---
+
+Alan Vo · [alanvo.net](https://alanvo.net)

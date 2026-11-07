@@ -19,3 +19,6 @@ Implementation: `backend/app/providers/registry.py`, `tests/test_core.py`
 
 Tests: `tests/test_core.py`
 
+---
+
+Alan Vo · [alanvo.net](https://alanvo.net)
