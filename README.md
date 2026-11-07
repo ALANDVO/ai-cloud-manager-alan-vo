@@ -189,4 +189,4 @@ docker run -d --name aicm -p 8000:8000 --env-file .env ai-cloud-manager
 
 ---
 
-Alan Vo · [alanvo.net](https://alanvo.net)
+Alan Vo · [alanvo.net](https://alanvo.net) · [X: @alanvoasi](https://x.com/alanvoasi)
