@@ -151,3 +151,9 @@ class TenantUpdate(BaseModel):
     providers: Optional[List[str]] = None
     cost_budget_monthly: Optional[float] = None
     status: Optional[str] = None
+
+class ProviderConnection(BaseModel):
+    provider: str
+    status: str
+    account: str
+    last_sync: str
