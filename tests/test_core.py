@@ -119,3 +119,12 @@ def test_tenant_management():
     t = provider_registry.get_tenant("tenant-default")
     assert t is not None
     assert t["name"] == "Default Tenant"
+
+def test_tenant_connections():
+    connections = provider_registry.get_tenant("tenant-default")
+    assert connections is not None
+    tenant = connections
+    # The default tenant has aws, gcp, azure providers configured
+    assert "aws" in tenant["providers"]
+    assert "gcp" in tenant["providers"]
+    assert "azure" in tenant["providers"]

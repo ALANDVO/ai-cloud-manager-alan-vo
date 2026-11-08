@@ -1,7 +1,25 @@
 {
   "schema_version": 1,
-  "current_feature": "continue-implementation",
+  "current_feature": "tenant-connections",
   "features": [
+    {
+      "id": "tenant-connections",
+      "title": "Tenant cloud provider connections endpoint",
+      "status": "done",
+      "acceptance": [
+        "GET /api/tenants/{id}/connections returns connections filtered by tenant's configured providers",
+        "Response validated against ProviderConnection schema",
+        "Test verifies default tenant returns all three provider connections"
+      ],
+      "implementation": [
+        "backend/app/api/routes.py",
+        "backend/app/api/schemas.py",
+        "tests/test_core.py"
+      ],
+      "tests": [
+        "tests/test_core.py::test_tenant_connections"
+      ]
+    },
     {
       "id": "continue-implementation",
       "title": "Continue implementation and resolve known failures",

@@ -4,9 +4,22 @@ Each round completes one feature or repair. Future items are planned, not implem
 
 ## Current round
 
-continue-implementation
+tenant-connections
 
 ## Roadmap
+
+### tenant-connections — Tenant cloud provider connections endpoint
+
+Status: done
+
+Acceptance:
+- GET /api/tenants/{id}/connections returns connections filtered by tenant's configured providers
+- Response validated against ProviderConnection schema
+- Test verifies default tenant returns all three provider connections
+
+Implementation: `backend/app/api/routes.py`, `backend/app/api/schemas.py`, `tests/test_core.py`
+
+Tests: `tests/test_core.py::test_tenant_connections`
 
 ### continue-implementation — Continue implementation and resolve known failures
 

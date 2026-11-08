@@ -1,8 +1,21 @@
 # Changelog
 
-## 1.4.0 — work-in-progress checkpoint
+## 1.5.0 — work-in-progress checkpoint
 
 Partial code published for continued development. Known issues: STATUS.md.
+
+## 1.4.0 — work-in-progress checkpoint
+
+### Added
+- Tenant cloud provider connections endpoint (GET /api/tenants/{id}/connections) returning provider-specific connection status filtered by tenant's configured providers
+- ProviderConnection response schema with provider, status, account, and last_sync fields
+
+### Fixed
+- Fixed duplicate imports in routes.py
+- Tenant connections endpoint now properly filters by tenant's configured providers instead of returning static mock data
+
+### Tests
+- Added test_tenant_connections test verifying default tenant returns connections for all three providers
 
 ## 1.3.0 — work-in-progress checkpoint
 
