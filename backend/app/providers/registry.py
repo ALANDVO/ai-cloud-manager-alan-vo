@@ -143,4 +143,19 @@ class ProviderRegistry:
         }
     ]
 
+    def get_tenant_connections(self, tenant_id: str) -> List[Dict[str, Any]]:
+        tenant = self.get_tenant(tenant_id)
+        if not tenant:
+            return []
+        connections = []
+        for provider_name in tenant.get("providers", []):
+            provider_obj = self.get_provider(provider_name)
+            configured = provider_obj.is_configured() if provider_obj else False
+            connections.append({
+                "provider": provider_name,
+                "status": "connected" if configured else "pending",
+                "account": f"{provider_name}-{tenant_id}",
+                "last_sync": datetime.now(timezone.utc).isoformat()
+            })
+        return connections
 provider_registry = ProviderRegistry()
