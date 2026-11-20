@@ -1,5 +1,5 @@
 import logging
-from typing import List, Dict, Any
+from typing import Any, Dict, List, Optional
 from app.config import settings
 
 logger = logging.getLogger(__name__)
@@ -30,12 +30,25 @@ class RightsizingEngine:
                 self.suggestions.append(self._upsize(r, avg, "overutilized"))
         return self.suggestions
 
+    def _current_index(self, types: List[str], current: str) -> Optional[int]:
+        """Index of the current spec within the provider's ladder, if known."""
+        try:
+            return types.index(current)
+        except ValueError:
+            return None
+
     def _downsize(self, resource: Dict, utilization: float, reason: str) -> Dict[str, Any]:
         provider = resource.get("provider", "aws")
         current = resource.get("name", "current")
         types = self.INSTANCE_TYPES.get(provider, [])
-        recommended = types[max(0, len(types) - 3)] if types else "smaller"
-        savings = resource.get("monthly_cost", 50.0) * 0.4
+        index = self._current_index(types, current)
+        if index is None or index == 0:
+            # Unknown or already the smallest spec: nothing smaller to suggest.
+            recommended = current
+            savings = 0.0
+        else:
+            recommended = types[index - 1]
+            savings = resource.get("monthly_cost", 50.0) * 0.4
         return {
             "resource_id": resource.get("id", "unknown"),
             "provider": provider,
@@ -51,7 +64,12 @@ class RightsizingEngine:
         provider = resource.get("provider", "aws")
         current = resource.get("name", "current")
         types = self.INSTANCE_TYPES.get(provider, [])
-        recommended = types[min(len(types) - 1, len(types) - 1)] if types else "larger"
+        index = self._current_index(types, current)
+        if index is None or index == len(types) - 1:
+            # Unknown or already the largest spec: nothing larger to suggest.
+            recommended = current
+        else:
+            recommended = types[index + 1]
         return {
             "resource_id": resource.get("id", "unknown"),
             "provider": provider,

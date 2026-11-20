@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+- Right-sizing recommendations now step one instance size relative to the resource's current
+  spec instead of jumping to a fixed slot in the provider ladder. Downsizing moved larger
+  instances *up* the ladder, and upsizing recommended the same oversized spec for every
+  instance. Already-smallest/largest or unrecognized specs now keep the current spec with
+  zero estimated savings.
+
 ## 1.6.0 — work-in-progress checkpoint
 
 Partial code published for continued development. Known issues: STATUS.md.
