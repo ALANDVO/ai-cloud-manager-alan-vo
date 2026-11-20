@@ -128,3 +128,38 @@ def test_tenant_connections():
     assert "aws" in tenant["providers"]
     assert "gcp" in tenant["providers"]
     assert "azure" in tenant["providers"]
+
+def test_rightsizing_recommendations_scale_with_current_size():
+    """Downsize must drop below the current spec; upsize must raise above it."""
+    low = [
+        {
+            "id": "i-under",
+            "provider": "aws",
+            "resource_type": "instance",
+            "name": "m5.xlarge",
+            "monthly_cost": 140.0,
+            "utilization": {"cpu": 8, "memory": 12},
+        }
+    ]
+    suggestions = rightsizing_engine.analyze(low)
+    assert len(suggestions) == 1
+    down = suggestions[0]
+    types = rightsizing_engine.INSTANCE_TYPES["aws"]
+    assert types.index(down["recommended_spec"]) < types.index(down["current_spec"])
+    assert down["estimated_savings_monthly"] > 0
+
+    high = [
+        {
+            "id": "i-over",
+            "provider": "aws",
+            "resource_type": "instance",
+            "name": "t3.large",
+            "monthly_cost": 60.0,
+            "utilization": {"cpu": 95, "memory": 92},
+        }
+    ]
+    suggestions = rightsizing_engine.analyze(high)
+    assert len(suggestions) == 1
+    up = suggestions[0]
+    assert types.index(up["recommended_spec"]) > types.index(up["current_spec"])
+    assert up["estimated_savings_monthly"] == 0.0
