@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.7.0 — work-in-progress checkpoint
+
+Partial code published for continued development. Known issues: STATUS.md.
+
 ## Unreleased
 
 ### Fixed

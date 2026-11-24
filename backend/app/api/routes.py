@@ -158,21 +158,5 @@ async def get_tenant_connections(tenant_id: str, user: User = Depends(get_curren
     if not tenant:
         raise HTTPException(status_code=404, detail="Tenant not found")
     
-    provider_accounts = {
-        "aws": {"status": "connected", "account": "123456789012", "last_sync": "2026-10-13T10:00:00Z"},
-        "gcp": {"status": "connected", "account": "my-gcp-project", "last_sync": "2026-10-13T10:05:00Z"},
-        "azure": {"status": "pending", "account": "sub-abc123", "last_sync": "2026-10-13T09:00:00Z"},
-    }
-    
-    connections = []
-    for provider in tenant.get("providers", []):
-        if provider in provider_accounts:
-            info = provider_accounts[provider]
-            connections.append(ProviderConnection(
-                provider=provider,
-                status=info["status"],
-                account=info["account"],
-                last_sync=info["last_sync"]
-            ))
-    
+    connections = provider_registry.get_tenant_connections(tenant_id)
     return connections
